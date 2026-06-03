@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaMirror | Digital Twin Smart Water Network</title>
+    <!-- Modern typography from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Main Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <svg class="logo-icon" viewBox="0 0 24 24" width="28" height="28">
+                        <path d="M12 2L2 12h3v8h14v-8h3L12 2zm0 15c-1.66 0-3-1.34-3-3s3-4 3-4 3 2.66 3 4-1.34 3-3 3z" fill="currentColor"/>
+                    </svg>
+                    <div class="logo-text">
+                        <h1>AQUAMIRROR</h1>
+                        <span class="logo-sub">DIGITAL TWIN INFRASTRUCTURE</span>
+                    </div>
+                </div>
+                <div class="campus-badge">
+                    <span class="badge-dot"></span>
+                    <span class="badge-text">UNILAG Pilot Campus (Phase 1)</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="telemetry-clock">
+                    <span class="clock-label">SYSTEM TIME:</span>
+                    <span id="live-clock">2026-06-03 13:58:18</span>
+                </div>
+                <div class="status-summary normal" id="system-status-badge">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                    <span id="system-status-text">SYSTEM STATUS: NOMINAL</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Layout Grid -->
+        <div class="dashboard-grid">
+            <!-- Sidebar: Stats & Simulator -->
+            <aside class="sidebar">
+                <!-- Fault Injector Panel -->
+                <div class="panel fault-injector">
+                    <div class="panel-header">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <h2>FAULT SIMULATOR</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p class="panel-desc">Manually trigger infrastructure faults to observe Digital Twin diagnostic isolation and translated solution responses.</p>
+                        
+                        <div class="fault-controls">
+                            <div class="fault-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="fault-name">Pipe Burst (Hostel Zone DMA-1)</span>
+                                    <span class="fault-loc">Main Gate Supply Line</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="fault-burst-dma1" onchange="toggleFault('burst_dma1')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="fault-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="fault-name">Pump Overheat (Borehole Well BH-1)</span>
+                                    <span class="fault-loc">Sub-surface Source Pump</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="fault-pump-overheat" onchange="toggleFault('pump_overheat')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="fault-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="fault-name">Tank Overflow (Overhead Tank OST-1)</span>
+                                    <span class="fault-loc">Overhead Distribution Storage</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="fault-tank-overflow" onchange="toggleFault('tank_overflow')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="fault-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="fault-name">Low Chlorine Level</span>
+                                    <span class="fault-loc">Staff Quarters (Zone DMA-3)</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="fault-low-chlorine" onchange="toggleFault('low_chlorine')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="fault-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="fault-name">Illegal Water Tapping</span>
+                                    <span class="fault-loc">Academic Blocks (Zone DMA-2)</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="fault-illegal-tap" onchange="toggleFault('illegal_tap')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-secondary btn-block" id="reset-faults-btn" onclick="resetAllFaults()">
+                            Clear All Faults
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Network Telemetry Stats -->
+                <div class="panel system-stats">
+                    <div class="panel-header">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                        <h2>LIVE METRICS</h2>
+                    </div>
+                    <div class="panel-body stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Non-Revenue Water</span>
+                            <span class="stat-val" id="stat-nrw">14.2%</span>
+                            <span class="stat-sub text-success" id="stat-nrw-change">↓ 15.8% vs Baseline</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Daily Loss Rate</span>
+                            <span class="stat-val" id="stat-loss">284,000 L</span>
+                            <span class="stat-sub" id="stat-loss-sub">Target: &lt; 300,000 L</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Borehole Pumping</span>
+                            <span class="stat-val" id="stat-flow">180 L/min</span>
+                            <span class="stat-sub text-warning" id="stat-flow-status">Normal Load</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Est. Financial Savings</span>
+                            <span class="stat-val text-accent" id="stat-savings">₦23,550 / day</span>
+                            <span class="stat-sub" id="stat-savings-sub">₦706,500 monthly rate</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Interactive Area -->
+            <main class="main-content">
+                <!-- Navigation Tabs -->
+                <nav class="tabs-nav">
+                    <button class="tab-btn active" data-tab="twin-tab" onclick="switchTab('twin-tab')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                        Digital Twin Map
+                    </button>
+                    <button class="tab-btn" data-tab="problems-tab" onclick="switchTab('problems-tab')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Diagnostics & Problems <span class="tab-badge" id="problem-count">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="solutions-tab" onclick="switchTab('solutions-tab')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        Mitigation & Solutions
+                    </button>
+                    <button class="tab-btn" data-tab="forecasts-tab" onclick="switchTab('forecasts-tab')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Forecasting & Allocations
+                    </button>
+                </nav>
+
+                <!-- Tab Contents -->
+                <div class="tab-content active" id="twin-tab">
+                    <div class="twin-grid">
+                        <!-- Interactive SVG Map -->
+                        <div class="card map-card">
+                            <div class="card-header">
+                                <h3>Hydraulic Schematic Model</h3>
+                                <div class="map-legend">
+                                    <span class="legend-item"><span class="legend-dot source"></span>Source (Borehole Well)</span>
+                                    <span class="legend-item"><span class="legend-dot tank"></span>Tank (Water Storage)</span>
+                                    <span class="legend-item"><span class="legend-dot consumer"></span>DMA (Zone Area)</span>
+                                    <span class="legend-item"><span class="legend-dot flow-active"></span>Flowing Pipe</span>
+                                </div>
+                            </div>
+                            <div class="card-body map-container">
+                                <!-- EPANET hydraulic representation -->
+                                <svg id="twin-svg" viewBox="0 0 800 450" width="100%" height="100%">
+                                    <!-- Grid Pattern Background -->
+                                    <defs>
+                                        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                                            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+                                        </pattern>
+                                        <!-- Glow Filters for Alerts (No gradients, just pure CSS pulses or solid highlights) -->
+                                    </defs>
+                                    <rect width="100%" height="100%" fill="url(#grid)" />
+
+                                    <!-- PIPELINES (Edges) -->
+                                    <!-- Pipe BH-1 to Pump 1 -->
+                                    <path id="pipe-bh1-pump1" d="M 90 90 L 190 90 L 190 140" class="pipe-line" />
+                                    <path id="flow-bh1-pump1" d="M 90 90 L 190 90 L 190 140" class="pipe-flow animate-flow" />
+
+                                    <!-- Pipe BH-2 to Pump 1 -->
+                                    <path id="pipe-bh2-pump1" d="M 90 190 L 190 190 L 190 140" class="pipe-line" />
+                                    <path id="flow-bh2-pump1" d="M 90 190 L 190 190 L 190 140" class="pipe-flow animate-flow" />
+
+                                    <!-- Pipe Pump 1 to Ground Tank GST-1 -->
+                                    <path id="pipe-pump1-gst1" d="M 210 140 L 310 140" class="pipe-line" />
+                                    <path id="flow-pump1-gst1" d="M 210 140 L 310 140" class="pipe-flow animate-flow" />
+
+                                    <!-- Pipe GST-1 to Overhead Tank OST-1 -->
+                                    <path id="pipe-gst1-ost1" d="M 350 140 L 450 140 L 450 200" class="pipe-line" />
+                                    <path id="flow-gst1-ost1" d="M 350 140 L 450 140 L 450 200" class="pipe-flow animate-flow" />
+
+                                    <!-- Bypass Pipe around OST-1 to main distribution ring -->
+                                    <path id="pipe-bypass" d="M 350 120 L 520 120 L 520 250" class="pipe-line" />
+                                    <path id="flow-bypass" d="M 350 120 L 520 120 L 520 250" class="pipe-flow" style="display:none;" />
+
+                                    <!-- Main Feed OST-1 to Distribution Junction -->
+                                    <path id="pipe-ost1-dist" d="M 450 240 L 450 280" class="pipe-line" />
+                                    <path id="flow-ost1-dist" d="M 450 240 L 450 280" class="pipe-flow animate-flow" />
+
+                                    <!-- Ring Feeder: Left to DMA 1 (Hostels) -->
+                                    <path id="pipe-dist-dma1" d="M 450 280 L 260 280 L 260 320" class="pipe-line" />
+                                    <path id="flow-dist-dma1" d="M 450 280 L 260 280 L 260 320" class="pipe-flow animate-flow" />
+
+                                    <!-- DMA 1 Hostel A to Hostel B link -->
+                                    <path id="pipe-dma1a-dma1b" d="M 260 350 L 360 350" class="pipe-line" />
+                                    <path id="flow-dma1a-dma1b" d="M 260 350 L 360 350" class="pipe-flow animate-flow" />
+
+                                    <!-- Ring Feeder: Right to DMA 2 (Academic) -->
+                                    <path id="pipe-dist-dma2" d="M 450 280 L 520 280 L 520 320" class="pipe-line" />
+                                    <path id="flow-dist-dma2" d="M 450 280 L 520 280 L 520 320" class="pipe-flow animate-flow" />
+
+                                    <!-- Pipe GST-1 directly to DMA 3 (Staff Quarters) -->
+                                    <path id="pipe-gst1-dma3" d="M 330 120 L 330 70 L 640 70 L 640 100" class="pipe-line" />
+                                    <path id="flow-gst1-dma3" d="M 330 120 L 330 70 L 640 70 L 640 100" class="pipe-flow animate-flow" />
+
+                                    <!-- DMA 3 Link: Staff Quarters to Medical Center -->
+                                    <path id="pipe-dma3-med" d="M 640 140 L 640 200" class="pipe-line" />
+                                    <path id="flow-dma3-med" d="M 640 140 L 640 200" class="pipe-flow animate-flow" />
+
+                                    <!-- NODES (Vertices) -->
+                                    <!-- Source: Borehole 1 -->
+                                    <g id="node-bh1" class="node source-node" onclick="inspectNode('bh1')">
+                                        <rect x="50" y="70" width="40" height="40" rx="4" />
+                                        <text x="70" y="94" text-anchor="middle" class="node-icon-txt">BH-1</text>
+                                        <circle cx="90" cy="90" r="4" class="node-port" />
+                                        <text x="70" y="125" text-anchor="middle" class="node-txt">Borehole 1 (BH-1)</text>
+                                    </g>
+                                    
+                                    <!-- Source: Borehole 2 -->
+                                    <g id="node-bh2" class="node source-node" onclick="inspectNode('bh2')">
+                                        <rect x="50" y="170" width="40" height="40" rx="4" />
+                                        <text x="70" y="194" text-anchor="middle" class="node-icon-txt">BH-2</text>
+                                        <circle cx="90" cy="190" r="4" class="node-port" />
+                                        <text x="70" y="225" text-anchor="middle" class="node-txt">Borehole 2 (BH-2)</text>
+                                    </g>
+
+                                    <!-- Valve: V-1 (BH1 isolation) -->
+                                    <g id="node-v1" class="node valve-node" onclick="inspectNode('v1')">
+                                        <polygon points="125,83 145,97 125,97 145,83" class="valve-symbol" />
+                                        <text x="135" y="77" text-anchor="middle" class="valve-label">Valve 1 (V-1)</text>
+                                    </g>
+
+                                    <!-- Valve: V-2 (BH2 isolation) -->
+                                    <g id="node-v2" class="node valve-node" onclick="inspectNode('v2')">
+                                        <polygon points="125,183 145,197 125,197 145,183" class="valve-symbol" />
+                                        <text x="135" y="177" text-anchor="middle" class="valve-label">Valve 2 (V-2)</text>
+                                    </g>
+
+                                    <!-- Junction / Pump Station 1 -->
+                                    <g id="node-pump1" class="node pump-node" onclick="inspectNode('pump1')">
+                                        <circle cx="200" cy="140" r="18" />
+                                        <path d="M 190 140 L 210 130 L 210 150 Z" class="pump-symbol" />
+                                        <text x="200" y="112" text-anchor="middle" class="node-txt">Pump Station 1 (PUMP-1)</text>
+                                    </g>
+
+                                    <!-- Ground Storage Tank GST-1 -->
+                                    <g id="node-gst1" class="node tank-node" onclick="inspectNode('gst1')">
+                                        <rect x="310" y="110" width="40" height="50" rx="2" />
+                                        <!-- Fill level line -->
+                                        <line x1="310" y1="120" x2="350" y2="120" class="tank-level-line" id="gst1-level-indicator" />
+                                        <text x="330" y="138" text-anchor="middle" class="tank-txt">GST-1</text>
+                                        <text x="330" y="152" text-anchor="middle" class="tank-pct" id="gst1-level-text">82%</text>
+                                        <text x="330" y="175" text-anchor="middle" class="node-txt">Ground Tank (GST-1)</text>
+                                    </g>
+
+                                    <!-- Overhead Storage Tank OST-1 -->
+                                    <g id="node-ost1" class="node tank-node" onclick="inspectNode('ost1')">
+                                        <rect x="430" y="200" width="40" height="40" rx="2" />
+                                        <!-- Stand legs -->
+                                        <line x1="435" y1="240" x2="435" y2="255" stroke="currentColor" stroke-width="2" />
+                                        <line x1="465" y1="240" x2="465" y2="255" stroke="currentColor" stroke-width="2" />
+                                        <!-- Fill level line -->
+                                        <line x1="430" y1="212" x2="470" y2="212" class="tank-level-line" id="ost1-level-indicator" />
+                                        <text x="450" y="224" text-anchor="middle" class="tank-txt">OST-1</text>
+                                        <text x="450" y="235" text-anchor="middle" class="tank-pct" id="ost1-level-text">68%</text>
+                                        <text x="450" y="270" text-anchor="middle" class="node-txt">Overhead Tank (OST-1)</text>
+                                    </g>
+
+                                    <!-- Valve: V-3 (OST-1 Inlet control) -->
+                                    <g id="node-v3" class="node valve-node" onclick="inspectNode('v3')">
+                                        <polygon points="443,155 457,171 443,171 457,155" class="valve-symbol" />
+                                        <text x="472" y="167" class="valve-label">Valve 3 (V-3)</text>
+                                    </g>
+
+                                    <!-- Valve: V-12 (DMA 1 Isolation) -->
+                                    <g id="node-v12" class="node valve-node" onclick="inspectNode('v12')">
+                                        <polygon points="340,273 360,287 340,287 360,273" class="valve-symbol" />
+                                        <text x="350" y="267" text-anchor="middle" class="valve-label">Valve 12 (V-12)</text>
+                                    </g>
+
+                                    <!-- Consumer: DMA 1 Hostel Block A -->
+                                    <g id="node-dma1a" class="node consumer-node" onclick="inspectNode('dma1a')">
+                                        <polygon points="260,320 285,340 235,340" />
+                                        <text x="260" y="358" text-anchor="middle" class="node-txt">Hostel A (Zone DMA-1)</text>
+                                    </g>
+
+                                    <!-- Consumer: DMA 1 Hostel Block B -->
+                                    <g id="node-dma1b" class="node consumer-node" onclick="inspectNode('dma1b')">
+                                        <polygon points="360,335 380,350 340,350" />
+                                        <text x="360" y="368" text-anchor="middle" class="node-txt">Hostel B (Zone DMA-1)</text>
+                                    </g>
+
+                                    <!-- Consumer: DMA 2 Academic Blocks -->
+                                    <g id="node-dma2" class="node consumer-node" onclick="inspectNode('dma2')">
+                                        <rect x="495" y="320" width="50" height="30" rx="3" />
+                                        <text x="520" y="365" text-anchor="middle" class="node-txt">Academic Area (Zone DMA-2)</text>
+                                    </g>
+
+                                    <!-- Consumer: DMA 3 Staff Quarters -->
+                                    <g id="node-dma3" class="node consumer-node" onclick="inspectNode('dma3')">
+                                        <rect x="615" y="100" width="50" height="40" rx="3" />
+                                        <text x="640" y="90" text-anchor="middle" class="node-txt">Staff Quarters (Zone DMA-3)</text>
+                                    </g>
+
+                                    <!-- Consumer: DMA 3 Medical Center -->
+                                    <g id="node-med" class="node consumer-node" onclick="inspectNode('med')">
+                                        <polygon points="640,200 660,220 620,220" />
+                                        <text x="640" y="238" text-anchor="middle" class="node-txt">Medical Center (Critical Zone)</text>
+                                    </g>
+
+                                    <!-- Leak Indicator Animations (Blinking elements toggled by JS) -->
+                                    <g id="leak-marker-dma1" class="leak-marker" style="display:none;">
+                                        <circle cx="340" cy="280" r="12" class="leak-pulse" />
+                                        <circle cx="340" cy="280" r="4" fill="#dc2626" />
+                                        <path d="M 340 280 L 340 250 L 320 240" stroke="#dc2626" stroke-width="1.5" fill="none" />
+                                        <rect x="230" y="210" width="180" height="28" rx="2" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+                                        <text x="320" y="228" text-anchor="middle" fill="#b91c1c" font-size="10" font-weight="600">PIPE BURST: HOSTEL ZONE (DMA 1)</text>
+                                    </g>
+
+                                    <g id="leak-marker-dma2" class="leak-marker" style="display:none;">
+                                        <circle cx="485" cy="280" r="12" class="leak-pulse" />
+                                        <circle cx="485" cy="280" r="4" fill="#d97706" />
+                                        <rect x="390" y="380" width="190" height="28" rx="2" fill="#fef3c7" stroke="#d97706" stroke-width="1"/>
+                                        <text x="485" y="398" text-anchor="middle" fill="#b45309" font-size="10" font-weight="600">MASS LOSS: ACADEMIC ZONE (DMA 2)</text>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Node Inspector Panel -->
+                        <div class="card inspector-card">
+                            <div class="card-header">
+                                <h3>Digital Twin Inspector</h3>
+                            </div>
+                            <div class="card-body" id="inspector-content">
+                                <div class="empty-state">
+                                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="16" x2="12" y2="12"/>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                    </svg>
+                                    <p>Select any node, valve, or storage tank on the schematic layout to inspect its real-time physical telemetry.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnostics & Problems Tab -->
+                <div class="tab-content" id="problems-tab">
+                    <div class="tab-layout-grid">
+                        <div class="card problem-list-card">
+                            <div class="card-header">
+                                <h3>Active Diagnostic Flags</h3>
+                                <span class="badge" id="problem-summary-badge">No Active Faults</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="problem-list" id="active-problems-list">
+                                    <!-- Rendered dynamically by JS -->
+                                    <div class="empty-state">
+                                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                            <polyline points="22 4 12 14.01 9 11.01"/>
+                                        </svg>
+                                        <p>All network parameters are within standard thresholds. No anomalies detected.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sensor Signal Validation / Accoustic graph -->
+                        <div class="card signal-card">
+                            <div class="card-header">
+                                <h3>Sensor Waveform Analysis</h3>
+                                <div class="signal-legend">
+                                    <span class="legend-item"><span class="legend-dot signal-flow"></span>Hydraulic Flow</span>
+                                    <span class="legend-item"><span class="legend-dot signal-acoustic"></span>Acoustic Noise</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="canvas-container">
+                                    <canvas id="waveform-canvas" width="400" height="200"></canvas>
+                                </div>
+                                <div class="telemetry-readout">
+                                    <div class="readout-item">
+                                        <span class="r-label">Flow Divergence:</span>
+                                        <span class="r-val" id="readout-divergence">0.0% (Ok)</span>
+                                    </div>
+                                    <div class="readout-item">
+                                        <span class="r-label">Acoustic Signal:</span>
+                                        <span class="r-val" id="readout-acoustic">14 dB (Background)</span>
+                                    </div>
+                                    <div class="readout-item">
+                                        <span class="r-label">Edge Ingress Rate:</span>
+                                        <span class="r-val">10s (Constant)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mitigation & Solutions Tab -->
+                <div class="tab-content" id="solutions-tab">
+                    <div class="solutions-layout">
+                        <!-- Solution Steps -->
+                        <div class="card solutions-card">
+                            <div class="card-header">
+                                <h3>Engineering Mitigation Procedure</h3>
+                                <!-- Translation Dropdown -->
+                                <div class="translation-control">
+                                    <label for="lang-select">Localised Instructions:</label>
+                                    <select id="lang-select" onchange="changeLanguage()">
+                                        <option value="en">English (Default)</option>
+                                        <option value="yo">Yoruba (Yorùbá)</option>
+                                        <option value="ha">Hausa (Harshen Hausa)</option>
+                                        <option value="ig">Igbo (Asụsụ Igbo)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body" id="solutions-content">
+                                <div class="empty-state">
+                                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    </svg>
+                                    <p>No active incidents require engineering intervention. Standard automatic balancing loops active.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification & Operations Panel -->
+                        <div class="card ops-card">
+                            <div class="card-header">
+                                <h3>Edge Dispatch & Gateway Status</h3>
+                            </div>
+                            <div class="card-body">
+                                <!-- Mobile WhatsApp Simulation -->
+                                <div class="whatsapp-simulator">
+                                    <div class="wa-header">
+                                        <div class="wa-avatar">AM</div>
+                                        <div class="wa-info">
+                                            <span class="wa-name">AquaMirror Edge Bot</span>
+                                            <span class="wa-status">Online · Local Dispatch</span>
+                                        </div>
+                                    </div>
+                                    <div class="wa-chat-area" id="whatsapp-chat">
+                                        <div class="wa-date">TODAY</div>
+                                        <div class="wa-msg system">
+                                            <span class="wa-text">AquaMirror Edge node connected to primary gateway. Active telemetry synched.</span>
+                                            <span class="wa-time">13:58</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hardware Sovereignty Check -->
+                                <div class="hardware-box">
+                                    <h4>Local Gateway Enclosure Status</h4>
+                                    <div class="hw-status-grid">
+                                        <div class="hw-item">
+                                            <span class="hw-lbl">Primary Link:</span>
+                                            <span class="hw-val text-success" id="hw-net">MTN 4G LTE</span>
+                                        </div>
+                                        <div class="hw-item">
+                                            <span class="hw-lbl">Solar Battery:</span>
+                                            <span class="hw-val" id="hw-battery">13.6V (Charged)</span>
+                                        </div>
+                                        <div class="hw-item">
+                                            <span class="hw-lbl">Edge Buffer:</span>
+                                            <span class="hw-val">0.02% (Sync active)</span>
+                                        </div>
+                                        <div class="hw-item">
+                                            <span class="hw-lbl">BOM Reference:</span>
+                                            <span class="hw-val text-accent">Alaba Sourced Components</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forecasting & Allocations Tab -->
+                <div class="tab-content" id="forecasts-tab">
+                    <div class="forecast-layout">
+                        <!-- Demand forecast graph -->
+                        <div class="card forecast-card">
+                            <div class="card-header">
+                                <h3>72-Hour Demand Forecasting Model</h3>
+                                <span class="badge badge-secondary">Meta Prophet Engine Calibrated</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="canvas-container">
+                                    <canvas id="forecast-canvas" width="800" height="250"></canvas>
+                                </div>
+                                <div class="forecast-meta">
+                                    <p class="meta-desc"><strong>Academic Calendar Intelligence:</strong> Operational model adjusted for UNILAG examination week. Expected peak demand shifted by +45 minutes in hostels during morning revision periods.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pump schedule optimization -->
+                        <div class="card sched-card">
+                            <div class="card-header">
+                                <h3>Optimised Pumping & Allocation Grid</h3>
+                                <button class="btn btn-primary btn-sm" onclick="recalculateOptimization()">Recalculate (Google OR-Tools)</button>
+                            </div>
+                            <div class="card-body">
+                                <p class="grid-intro">Linear Programming schedule prioritising hostel supply during off-peak tariff periods:</p>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Time Range</th>
+                                                <th>Pump Target</th>
+                                                <th>Source</th>
+                                                <th>Dest. Tank</th>
+                                                <th>Priority Level</th>
+                                                <th>Action Recommendation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="optimization-schedule-body">
+                                            <!-- Dynamic content -->
+                                            <tr>
+                                                <td>05:30 - 07:15</td>
+                                                <td>Borehole 1 (BH-1)</td>
+                                                <td>Aquifer Node 1</td>
+                                                <td>Ground Tank (GST-1)</td>
+                                                <td><span class="prio prio-high">High</span></td>
+                                                <td>Run pump (Hostel morning wake-up prep)</td>
+                                            </tr>
+                                            <tr>
+                                                <td>12:00 - 13:00</td>
+                                                <td>Borehole 2 (BH-2)</td>
+                                                <td>Aquifer Node 2</td>
+                                                <td>Ground Tank (GST-1)</td>
+                                                <td><span class="prio prio-low">Low</span></td>
+                                                <td>Run pump (Solar peak capture period)</td>
+                                            </tr>
+                                            <tr>
+                                                <td>18:00 - 20:00</td>
+                                                <td>Borehole 1 (BH-1)</td>
+                                                <td>Aquifer Node 1</td>
+                                                <td>Overhead Tank (OST-1)</td>
+                                                <td><span class="prio prio-med">Medium</span></td>
+                                                <td>Run pump (Evening reserve tank charge)</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Designed for the FETICON 2026 Innovation Challenge. AquaMirror Smart Campus Platform. In partnership with Engineering & Works Department.</p>
+            <div class="footer-links">
+                <span>SDG 6: Clean Water</span>
+                <span>SDG 9: Resilient Infrastructure</span>
+                <span>SDG 12: Sustainable Consumption</span>
+            </div>
+        </footer>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
