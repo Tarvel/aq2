@@ -12,6 +12,10 @@ let activeFaults = {
 let activeLanguage = 'en';
 let selectedNodeId = null;
 
+// Solver & simulation states for forecast canvas chart
+let hasRecalculated = false;
+let isSolving = false;
+
 // Node database (Default / Nominal parameters)
 const nodeData = {
     bh1: {
@@ -522,6 +526,9 @@ function toggleFault(faultId) {
     renderProblemsTab();
     renderSolutionsTab();
     
+    // Redraw forecast chart to reflect any leaks
+    initForecastChart();
+    
     // Inject WhatsApp simulation message if fault active
     triggerWhatsAppAlert(faultId);
 }
@@ -534,11 +541,49 @@ function resetAllFaults() {
         if (toggle) toggle.checked = false;
     }
     
+    // Reset optimized schedule state too
+    hasRecalculated = false;
+    isSolving = false;
+    
+    // Reset schedule back to default rows in HTML
+    const tableBody = document.getElementById("optimization-schedule-body");
+    if (tableBody) {
+        tableBody.innerHTML = `
+            <tr>
+                <td>05:30 - 07:15</td>
+                <td>Borehole 1 (BH-1)</td>
+                <td>Aquifer Node 1</td>
+                <td>Ground Tank (GST-1)</td>
+                <td><span class="prio prio-high">High</span></td>
+                <td>Run pump (Hostel morning wake-up prep)</td>
+            </tr>
+            <tr>
+                <td>12:00 - 13:00</td>
+                <td>Borehole 2 (BH-2)</td>
+                <td>Aquifer Node 2</td>
+                <td>Ground Tank (GST-1)</td>
+                <td><span class="prio prio-low">Low</span></td>
+                <td>Run pump (Solar peak capture period)</td>
+            </tr>
+            <tr>
+                <td>18:00 - 20:00</td>
+                <td>Borehole 1 (BH-1)</td>
+                <td>Aquifer Node 1</td>
+                <td>Overhead Tank (OST-1)</td>
+                <td><span class="prio prio-med">Medium</span></td>
+                <td>Run pump (Evening reserve tank charge)</td>
+            </tr>
+        `;
+    }
+    
     updateSvgStates();
     updateTelemetryStats();
     renderNodeInspector();
     renderProblemsTab();
     renderSolutionsTab();
+    
+    // Redraw chart to clear leak lines and optimized lines
+    initForecastChart();
     
     // Clear WhatsApp except first message
     const chat = document.getElementById("whatsapp-chat");
@@ -1047,7 +1092,7 @@ function animateWaveform() {
     animationFrameId = requestAnimationFrame(animateWaveform);
 }
 
-// Draw Forecast Static Chart on Canvas (No Chart.js dependency for edge speed)
+// Draw Forecast Static/Dynamic Chart on Canvas (No Chart.js dependency for edge speed)
 function initForecastChart() {
     const canvas = document.getElementById("forecast-canvas");
     if (!canvas) return;
@@ -1096,15 +1141,13 @@ function initForecastChart() {
         ctx.fillText(flowLabels[i], 45, y + 4);
     }
     
-    // Draw Curves
-    // Baseline (Historic Demand) - Cyan/Blue
+    // 1. Draw Historical Baseline Curve (Grey Dashed)
     ctx.beginPath();
-    ctx.strokeStyle = "#475569";
+    ctx.strokeStyle = "#94a3b8";
     ctx.setLineDash([5, 5]);
     ctx.lineWidth = 2;
     for(let i=0; i<50; i++) {
         const x = 50 + (i / 49) * (width - 80);
-        // Sinusoidal demand wave + some noise
         const val = 120 + Math.sin(i * 0.5) * 50;
         const y = height - 30 - (val / 250) * (height - 60);
         if (i === 0) ctx.moveTo(x, y);
@@ -1113,34 +1156,82 @@ function initForecastChart() {
     ctx.stroke();
     ctx.setLineDash([]); // clear dash
     
-    // Optimized Forecast Curve (Meta Prophet) - Sky Blue
+    // 2. Draw Demand Forecast / Optimization Curve (Blue Solid)
     ctx.beginPath();
     ctx.strokeStyle = "#0284c7";
     ctx.lineWidth = 3;
     for(let i=0; i<50; i++) {
         const x = 50 + (i / 49) * (width - 80);
-        // Demand flattened due to OR-Tools optimization pump rescheduling
-        const val = 100 + Math.sin(i * 0.5) * 30 + (i > 25 ? -10 : 15);
+        let val;
+        
+        if (isSolving) {
+            // Solve calculation animation: noisy fluctuating curve
+            const noise = (Math.random() - 0.5) * 35;
+            val = 110 + Math.sin(i * 0.5) * 30 + noise;
+        } else if (hasRecalculated) {
+            // Recalculated fully optimized curve: smooth and flattened
+            val = 100 + Math.sin(i * 0.5) * 15;
+        } else {
+            // Default forecast (moderately optimized, follows baseline but slightly flatter)
+            val = 115 + Math.sin(i * 0.5) * 30 + (i > 25 ? -10 : 15);
+        }
+        
         const y = height - 30 - (val / 250) * (height - 60);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
     }
     ctx.stroke();
     
+    // 3. Draw Actual Measured Flow (Red Curve) if any leak/burst/tapping fault is active
+    const hasLeak = activeFaults.burst_dma1 || activeFaults.illegal_tap;
+    if (hasLeak) {
+        ctx.beginPath();
+        ctx.strokeStyle = "#dc2626"; // solid warning red
+        ctx.lineWidth = 2.5;
+        for(let i=0; i<50; i++) {
+            const x = 50 + (i / 49) * (width - 80);
+            let val = 120 + Math.sin(i * 0.5) * 50; // starts similar to baseline
+            
+            // Add a massive leak spike/burst anomaly in the middle (indices 18 to 38)
+            if (i >= 18 && i <= 38) {
+                const leakPeak = Math.sin((i - 18) / 20 * Math.PI) * 70;
+                val += leakPeak;
+            }
+            
+            const y = height - 30 - (val / 250) * (height - 60);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+    
     // Legend labels on canvas
     ctx.textAlign = "left";
     ctx.fillStyle = "#0f172a";
     ctx.font = "11px Outfit, sans-serif";
     
+    // Legend item 1: Forecast Curve
     ctx.fillStyle = "#0284c7";
-    ctx.fillRect(80, 15, 12, 12);
+    ctx.fillRect(60, 15, 12, 12);
     ctx.fillStyle = "#0f172a";
-    ctx.fillText("Demand Forecast (Prophet + OR-Tools Schedule)", 100, 25);
+    ctx.fillText(hasRecalculated ? "Optimised Schedule (Google OR-Tools)" : "Demand Forecast (Unsolved)", 80, 25);
     
-    ctx.strokeStyle = "#475569";
-    ctx.beginPath(); ctx.moveTo(400, 21); ctx.lineTo(415, 21); ctx.stroke();
+    // Legend item 2: Historical Baseline
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(310, 21); ctx.lineTo(325, 21); ctx.stroke();
+    ctx.setLineDash([]);
     ctx.fillStyle = "#0f172a";
-    ctx.fillText("Unoptimized Historical Baseline", 425, 25);
+    ctx.fillText("Historical Baseline", 335, 25);
+    
+    // Legend item 3: Actual Measured Flow (only visible/labeled when fault is active)
+    if (hasLeak) {
+        ctx.fillStyle = "#dc2626";
+        ctx.fillRect(490, 15, 12, 12);
+        ctx.fillStyle = "#0f172a";
+        ctx.fillText("Actual Flow (Burst/Leak Anomaly)", 510, 25);
+    }
 }
 
 // Simulates OR-Tools recalculation solver
@@ -1154,7 +1245,18 @@ function recalculateOptimization() {
     btn.textContent = "Solving LP Model...";
     btn.disabled = true;
     
+    isSolving = true;
+    
+    // Animate the canvas chart while solving
+    const solverInterval = setInterval(() => {
+        initForecastChart();
+    }, 80);
+    
     setTimeout(() => {
+        clearInterval(solverInterval);
+        isSolving = false;
+        hasRecalculated = true;
+        
         // Generate new random but realistic schedule rows
         tableBody.innerHTML = `
             <tr>
@@ -1190,6 +1292,9 @@ function recalculateOptimization() {
                 <td>Gravity discharge optimization active</td>
             </tr>
         `;
+        
+        // Redraw final optimized chart
+        initForecastChart();
         
         btn.textContent = origText;
         btn.disabled = false;
