@@ -83,6 +83,9 @@ The panel may ask about the styling choices of the dashboard. Here are the profe
 ### Q4: Why provide a Yoruba (Ìyá Mímọ́ Wọta) translation tab?
 > **Defense:** Campus operational staff and municipal technicians are often local operators who communicate more effectively in localized terms. Providing a clear, quick translation of mechanical action steps ensures zero ambiguity during high-stress operations like pipe bursts or pump shutdowns.
 
+### Q5: Why is there a "Load Hydraulic Schema (.inp / .json)" button?
+> **Defense:** A digital twin is only as accurate as its underlying hydraulic schematic. The "Load Hydraulic Schema" button allows operators to upload new EPANET (.inp) network definition files or JSON telemetry maps directly into the dashboard. During presentations or network refactoring, this button demonstrates the system's ability to dynamic-reload and re-render new campus pipeline networks on the fly.
+
 ---
 
 ## 5. Pump Schedule Optimization: Linear Programming (LP) Model

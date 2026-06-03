@@ -199,8 +199,11 @@
                     <div class="twin-grid">
                         <!-- Interactive SVG Map -->
                         <div class="card map-card">
-                            <div class="card-header">
-                                <h3>Hydraulic Schematic Model</h3>
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <h3>Hydraulic Schematic Model</h3>
+                                    <button class="btn btn-secondary btn-sm" onclick="loadHydraulicModel()">Load Hydraulic Schema (.inp / .json)</button>
+                                </div>
                                 <div class="map-legend">
                                     <span class="legend-item"><span class="legend-dot source"></span>Source (Borehole Well)</span>
                                     <span class="legend-item"><span class="legend-dot tank"></span>Tank (Water Storage)</span>

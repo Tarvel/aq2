@@ -1,6 +1,6 @@
 # AquaMirror | Digital Twin Smart Water Network Dashboard
 
-Welcome to the **AquaMirror Digital Twin Smart Water Network Dashboard** codebase. This platform is a real-time virtual replica of a campus water distribution network (based on the UNILAG Phase 1 pilot). It is designed to monitor hydraulic pressure, detect and isolate leakages, predict system stress, and optimize water pumping schedules using linear programming.
+Welcome to the **AquaMirror Digital Twin Smart Water Network Dashboard** codebase. This platform is a real-time virtual replica of a campus water distribution network (based on the UNILORIN Phase 1 pilot). It is designed to monitor hydraulic pressure, detect and isolate leakages, predict system stress, and optimize water pumping schedules using linear programming.
 
 This project was built for the **FETICON 2026 Innovation Challenge** under the theme:  
 *"Innovating for a Sustainable and Resilient Future: Technology as a Catalyst for Economic Development."*
@@ -35,6 +35,7 @@ AquaMirror provides an intuitive, professional, high-contrast light-mode interfa
 ### 1. Interactive Hydraulic Schematic (SVG Map)
 - **Visual Mapping:** Displays the physical pipeline connections from water sources (Borehole Wells `BH-1` & `BH-2`), isolation valves (`V-1`, `V-2`, `V-3`, `V-12`), the Pumping Station, storage facilities (`GST-1` ground tank and `OST-1` overhead tank), down to the District Metered Area (DMA) consumption zones (Hostels, Academic Area, Staff Quarters, and Critical Medical Bay).
 - **Click-to-Inspect:** Click on any node on the map (such as `GST-1` or `V-12`) to pull up its live operational telemetry in the **Node Inspector** card on the right-hand panel. All terminology is written out in plain English to be understood by non-technical operators.
+- **Model Loader Integration:** Features a **"Load Hydraulic Schema (.inp / .json)"** button inside the card header, which simulates opening a file dialog to load network topography schemas (e.g. EPANET `.inp` format) for evaluation panel presentations.
 
 ### 2. Fault Simulator Panel (Left Sidebar)
 To demonstrate the Digital Twin's real-time diagnostic capability, you can manually inject infrastructure faults:
@@ -53,8 +54,8 @@ To demonstrate the Digital Twin's real-time diagnostic capability, you can manua
 - When you toggle a fault, an instant alert is pushed to this log showing the exact message sent to field technicians (spelling out abbreviations like DMA, BH, OST so off-duty crew can act instantly).
 
 ### 5. Demand Forecast & LP Optimization Grid
-- **72-Hour Demand Chart:** A canvas-based chart predicting future campus demand curves, pre-calibrated for peak adjustments during UNILAG examination week.
-- **Optimized Pumping Allocation Grid:** Click the **"Recalculate (Google OR-Tools)"** button to run the Linear Programming optimization model, which dynamically computes the most cost-efficient pumping intervals based on solar yield and off-peak electricity tariffs.
+- **72-Hour Demand Chart:** An interactive, simulated canvas chart predicting future campus demand curves, pre-calibrated for peak adjustments during UNILORIN examination week. It displays a red anomaly flow line dynamically if leaks are detected.
+- **Optimized Pumping Allocation Grid:** Click the **"Recalculate (Google OR-Tools)"** button to run the Linear Programming optimization model, which dynamically computes the most cost-efficient pumping intervals based on solar yield and off-peak electricity tariffs, animating the forecast chart during the solver's iterations.
 
 ---
 

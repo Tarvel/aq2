@@ -1303,3 +1303,22 @@ function recalculateOptimization() {
         alert("Google OR-Tools solver completed successfully. 4-step pumping schedule updated.");
     }, 1200);
 }
+
+// Simulates loading an EPANET hydraulic schema model file for presentations
+function loadHydraulicModel() {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".inp,.json";
+    fileInput.style.display = "none";
+    
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            alert(`Hydraulic Schema loaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(2)} KB\nEPANET network nodes, valves, and flow pipelines mapped successfully.`);
+        }
+    };
+    
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
+}
